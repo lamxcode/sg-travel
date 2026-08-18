@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- iOS Standalone Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SG Trip">
+  <meta name="theme-color" content="#090d16">
+
+  <title>Singapore Hub</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --card-inner: #1c2742;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #23314f;
+      --tag-photo: #f43f5e;
+      --tag-food: #f59e0b;
+      --tag-transit: #10b981;
+      --tag-alert: #ec4899;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px) 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      padding: 12px 0 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+    .base-info {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .segmented-control {
+      display: flex;
+      background: var(--card-bg);
+      padding: 3px;
+      border-radius: 10px;
+      margin: 16px 0;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .segment-btn {
+      flex: 1;
+      min-width: 65px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 8px 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .segment-btn.active {
+      background: var(--accent);
+      color: #090d16;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .time {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-transit { background: rgba(16, 185, 129, 0.15); color: var(--tag-transit); border: 1px solid var(--tag-transit); }
+    .badge-photo { background: rgba(244, 63, 94, 0.15); color: var(--tag-photo); border: 1px solid var(--tag-photo); }
+    .badge-food { background: rgba(245, 158, 11, 0.15); color: var(--tag-food); border: 1px solid var(--tag-food); }
+    .badge-alert { background: rgba(236, 72, 153, 0.15); color: var(--tag-alert); border: 1px solid var(--tag-alert); }
+    .title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #ffffff;
+    }
+    .desc {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+    .note-box {
+      margin-top: 8px;
+      background: var(--card-inner);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 3px solid var(--accent);
+    }
+    .rules-list {
+      padding-left: 18px;
+      margin: 6px 0 0 0;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+    .rules-list li { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🇸🇬 Singapore Stopover Hub</h1>
+    <div class="base-info">📍 47 Hongkong St • Budget: AUD $819 / HK$ 4,169</div>
+  </header>
+
+  <div class="segmented-control">
+    <button class="segment-btn active" onclick="showTab('d1')">Day 1</button>
+    <button class="segment-btn" onclick="showTab('d2')">Day 2</button>
+    <button class="segment-btn" onclick="showTab('d3')">Day 3</button>
+    <button class="segment-btn" onclick="showTab('d4')">Day 4</button>
+    <button class="segment-btn" onclick="showTab('rules')">Field Rules</button>
+  </div>
+
+  <!-- DAY 1 -->
+  <div id="d1" class="tab-view">
+    <div class="card">
+      <div class="card-header"><span class="time">06:15 – 07:15</span><span class="badge badge-transit">Arrival</span></div>
+      <div class="title">Touchdown & Biometric Clearance</div>
+      <div class="desc">SQ216 arrives. Pass automated biometric gates & collect 2x 29" bags.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">07:15 – 07:30</span><span class="badge badge-transit">Terminal</span></div>
+      <div class="title">100GB SIM Card & HSBC ATM</div>
+      <div class="desc">Level 1 Arrival Hall: Pick up Klook SIM & withdraw SGD cash at HSBC ATM.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">07:30 – 08:20</span><span class="badge badge-transit">MRT</span></div>
+      <div class="title">Changi (CG2) → Raffles Place (EW14)</div>
+      <div class="desc">Cross-platform at Tanah Merah. Exit G, walk 650m via North Canal Rd to Hotel Bencoolen to drop bags.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">08:35 – 09:45</span><span class="badge badge-food">Hawker</span></div>
+      <div class="title">Breakfast: Heap Seng Leong</div>
+      <div class="desc">Bus 190/147 up North Bridge Rd. Kopi Gu You (butter coffee) & kaya toast.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">09:45 – 12:15</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Kampong Glam Heritage</div>
+      <div class="desc">Sultan Mosque, Muscat St murals, Arab St & uncrowded morning Haji Lane.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">12:15 – 13:45</span><span class="badge badge-food">Hawker</span></div>
+      <div class="title">Lunch: Golden Mile Food Centre</div>
+      <div class="desc">Claypot Rice, Hainanese Mutton Soup, or Fried Hokkien Mee.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">14:00 – 16:30</span><span class="badge badge-transit">Hotel</span></div>
+      <div class="title">Check-in (15:00) & Gear Prep</div>
+      <div class="desc">Downtown Line back to base. Check in at 15:00, unpack, charge batteries, rest.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">17:00 – 21:00</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Marina Bay Sands & Waterfront</div>
+      <div class="desc">Downtown Line to Bayfront. Helix Bridge framing & 20:00 Spectra Light Show.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">21:00 – 22:30</span><span class="badge badge-food">Hawker</span></div>
+      <div class="title">Dinner: Lau Pa Sat Satay Street</div>
+      <div class="desc">Boon Tat St charcoal satay under skyscrapers. 8-min walk home to hotel.</div>
+    </div>
+  </div>
+
+  <!-- DAY 2 -->
+  <div id="d2" class="tab-view" style="display:none;">
+    <div class="card">
+      <div class="card-header"><span class="time">08:30 – 10:00</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Fort Canning Tree Tunnel</div>
+      <div class="desc">5-min walk across Canning Rise. Shoot spiral staircase before queues form.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">10:00 – 11:30</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Old Hill Street Police Station</div>
+      <div class="desc">927 rainbow shutters facade & Clarke Quay riverside shopfronts.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">11:30 – 14:00</span><span class="badge badge-food">Hawker</span></div>
+      <div class="title">CBD Lunch & CapitaSpring</div>
+      <div class="desc">Amoy Street Food Centre. (Note: CapitaSpring L51 Sky Garden opens at 14:30).</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">14:30 – 18:30</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Gardens by the Bay Conservatories</div>
+      <div class="desc">Downtown Line to Bayfront. Cloud Forest waterfall & Flower Dome.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">18:30 – 20:30</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Supertree Grove & Light Show</div>
+      <div class="desc">Twilight shots at base of Supertrees; watch 19:45 Garden Rhapsody show.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">20:30 – 22:00</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Pinnacle@Duxton Skybridge</div>
+      <div class="desc">Pay $6 SGD via contactless at Blk 1G L1. 50th-floor 360° city night panorama.</div>
+    </div>
+  </div>
+
+  <!-- DAY 3 -->
+  <div id="d3" class="tab-view" style="display:none;">
+    <div class="card">
+      <div class="card-header"><span class="time">09:00 – 11:30</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Chinatown Heritage Grid</div>
+      <div class="desc">Buddha Tooth Relic Temple, Pagoda St & Sago St shophouse facades.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">11:30 – 12:30</span><span class="badge badge-food">Hawker</span></div>
+      <div class="title">Lunch: Maxwell Food Centre</div>
+      <div class="desc">Tian Tian Chicken Rice, Ah Tai, or Fuzhou Oyster Cake.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">12:30 – 16:00</span><span class="badge badge-transit">Direct Bus</span></div>
+      <div class="title">Southern Ridges & Henderson Waves</div>
+      <div class="desc">Take Bus 145 from South Bridge Rd straight to Henderson Rd. Canopy walk.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">16:30 – 19:30</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Sentosa Coastal Golden Hour</div>
+      <div class="desc">Siloso Beach & Fort Siloso elevated skywalk for sunset sea views.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">20:00 – 21:30</span><span class="badge badge-food">Hawker</span></div>
+      <div class="title">VivoCity & Return via NEL</div>
+      <div class="desc">Dinner at HarbourFront, take North East Line direct to Clarke Quay Station (200m).</div>
+    </div>
+  </div>
+
+  <!-- DAY 4 -->
+  <div id="d4" class="tab-view" style="display:none;">
+    <div class="card">
+      <div class="card-header"><span class="time">08:30 – 10:30</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Botanic Gardens & Orchid Garden</div>
+      <div class="desc">Downtown Line to DT9. National Orchid Garden ($15 SGD) for macro plant shots.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">10:30 – 11:15</span><span class="badge badge-food">Hawker</span></div>
+      <div class="title">Lunch: Adam Road Food Centre</div>
+      <div class="desc">Located right outside garden gates. Famous for Nasi Lemak.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">11:45 – 12:00</span><span class="badge badge-alert">Checkout</span></div>
+      <div class="title">Hotel Checkout & Luggage Pickup</div>
+      <div class="desc">Completed before the 12:00 deadline. Collect packed 29" bags.</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="time">12:30 – 17:00</span><span class="badge badge-photo">Photo</span></div>
+      <div class="title">Jewel Changi HSBC Rain Vortex</div>
+      <div class="desc">Early flight bag drop for SQ898. Shoot 7-story indoor waterfall before flight.</div>
+    </div>
+  </div>
+
+  <!-- FIELD RULES -->
+  <div id="rules" class="tab-view" style="display:none;">
+    <div class="card">
+      <div class="title">Operational Field Notes</div>
+      <ul class="rules-list">
+        <li><b>Tree Tunnel:</b> Arrive strictly by 08:30 AM to beat long photo lines.</li>
+        <li><b>CapitaSpring L51 Access:</b> Weekdays 08:30–10:30 AM and 14:30–18:00 PM only.</li>
+        <li><b>Bus 145 Shortcut:</b> Takes you direct from Chinatown to Henderson Waves without MRT transfers.</li>
+        <li><b>Pinnacle@Duxton:</b> Buy $6 SGD ticket via contactless card at Block 1G L1 sales office.</li>
+        <li><b>SimplyGo:</b> Use the same physical card / Apple Pay device on every tap.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function showTab(id) {
+      document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.segment-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(id).style.display = 'block';
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>
