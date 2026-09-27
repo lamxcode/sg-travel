@@ -40,7 +40,7 @@
     .view-panel { display: none; padding: 16px; }
     .view-panel.active { display: block; }
 
-    /* Itinerary List */
+    /* Itinerary */
     .day-selector { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
     .day-btn {
       flex: 1; min-width: 70px; padding: 8px 12px; background: var(--card-bg); border: 1px solid var(--border);
@@ -58,8 +58,9 @@
     .event-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
     .tag { display: inline-block; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: var(--border); margin-top: 6px; color: var(--text); }
 
-    /* Map */
+    /* Map View */
     #map { height: calc(100vh - 170px); width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+    .leaflet-tile-pane { filter: brightness(0.85) invert(1) contrast(3) hue-rotate(200deg) saturate(0.35); }
 
     /* Logger */
     .summary-card {
@@ -109,9 +110,9 @@
   </header>
 
   <nav class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('itinerary')">📅 Itinerary</button>
-    <button class="tab-btn" onclick="switchTab('map-view')">🗺️ Map</button>
-    <button class="tab-btn" onclick="switchTab('logger')">💰 Logger</button>
+    <button class="tab-btn active" onclick="switchTab('itinerary', event)">📅 Itinerary</button>
+    <button class="tab-btn" onclick="switchTab('map-view', event)">🗺️ Map</button>
+    <button class="tab-btn" onclick="switchTab('logger', event)">💰 Logger</button>
   </nav>
 
   <!-- ITINERARY VIEW -->
@@ -128,43 +129,49 @@
       <div class="timeline-card">
         <div class="time-slot">06:15 - 07:30</div>
         <div class="event-title">Touchdown & Changi Setup</div>
-        <div class="event-desc">SQ216 biometric clearance, 2x 29" bags, pick up 100GB Tourist SIM, withdraw SGD $150 at HSBC ATM.</div>
+        <div class="event-desc">SQ216 automated gates, 2x 29" bags, pick up Tourist SIM, withdraw SGD $150 at HSBC ATM.</div>
         <span class="tag">Changi T3</span>
       </div>
       <div class="timeline-card">
-        <div class="time-slot">07:30 - 08:20</div>
-        <div class="event-title">Luggage Drop @ Hotel Bencoolen</div>
-        <div class="event-desc">GrabCar (6-seater) to 47 Hongkong St (~SGD $35). Drop bags at reception prior to check-in.</div>
-        <span class="tag">Clarke Quay</span>
+        <div class="time-slot">07:30 - 08:30</div>
+        <div class="event-title">MRT to Hotel Bencoolen (100% SMRT)</div>
+        <div class="event-desc">Changi MRT (CG2) $\rightarrow$ Tanah Merah transfer $\rightarrow$ Bugis $\rightarrow$ DT Line to Fort Canning (DT20 Exit A). 400 m flat walk with bags to 47 Hongkong St. Drop luggage at reception.</div>
+        <span class="tag">MRT • Apple Pay ($2.18)</span>
       </div>
       <div class="timeline-card">
-        <div class="time-slot">08:35 - 09:30</div>
+        <div class="time-slot">08:45 - 09:30</div>
         <div class="event-title">Breakfast: Heap Seng Leong</div>
-        <div class="event-desc">Kopi Gu You (butter coffee) + kaya toast. Cash only (~SGD $4.50).</div>
+        <div class="event-desc">Bus 190/147 up North Bridge Rd. Kopi Gu You (butter coffee) + kaya toast. Cash only (~SGD $4.50).</div>
         <span class="tag">Cash Only</span>
       </div>
       <div class="timeline-card">
-        <div class="time-slot">09:30 - 10:45</div>
+        <div class="time-slot">09:30 - 10:30</div>
         <div class="event-title">Kampong Glam Heritage</div>
         <div class="event-desc">Sultan Mosque exterior framing, Muscat St, quiet morning Haji Lane facades.</div>
         <span class="tag">Photo Walk</span>
       </div>
       <div class="timeline-card">
-        <div class="time-slot">10:45 - 12:15</div>
+        <div class="time-slot">10:30 - 11:30</div>
         <div class="event-title">Little India & House of Tan Teng Niah</div>
-        <div class="event-desc">Walk or DT Line to Little India. Ultra-wide facade shots of vibrant Tan Teng Niah villa + Serangoon Rd street life.</div>
-        <span class="tag">16–28mm Wide</span>
+        <div class="event-desc">Walk or DT Line to Little India. Ultra-wide facade framing of the vibrant Tan Teng Niah villa + Serangoon Rd street life.</div>
+        <span class="tag">16–28mm Lens</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">11:30 - 12:15</div>
+        <div class="event-title">Raffles Hotel Colonial Architecture</div>
+        <div class="event-desc">Stroll south down Beach Rd. Photograph the Palm Court, white cast-iron colonnades, and grand neo-Renaissance hotel facade.</div>
+        <span class="tag">Colonial Heritage</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">12:30 - 13:45</div>
         <div class="event-title">Lunch: Golden Mile Food Centre</div>
-        <div class="event-desc">Bus 961/170 to Golden Mile. Claypot chicken rice or Hokkien mee (~SGD $8, Cash).</div>
+        <div class="event-desc">Bus 100/961 to Golden Mile. Claypot chicken rice or Hokkien mee (~SGD $8.00, Cash).</div>
         <span class="tag">Hawker Lunch</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">14:00 - 16:30</div>
         <div class="event-title">Hotel Check-In & Recharge</div>
-        <div class="event-desc">Check in at 47 Hongkong St, AC rest, shower, charge camera gear during peak afternoon heat.</div>
+        <div class="event-desc">Check in at 47 Hongkong St, AC break, shower, charge camera batteries during midday heat.</div>
         <span class="tag">Hotel Rest</span>
       </div>
       <div class="timeline-card">
@@ -176,8 +183,8 @@
       <div class="timeline-card">
         <div class="time-slot">21:00 - 22:30</div>
         <div class="event-title">Dinner: Lau Pa Sat Satay Street</div>
-        <div class="event-desc">Charcoal outdoor satay stalls along Boon Tat St (~SGD $15, Cash/Card). 8-min walk to hotel.</div>
-        <span class="tag">Late Dinner</span>
+        <div class="event-desc">Charcoal outdoor satay stalls along Boon Tat St (~SGD $15.00). 8-min walk back to base.</div>
+        <span class="tag">Satay Street</span>
       </div>
     </div>
 
@@ -186,8 +193,8 @@
       <div class="timeline-card">
         <div class="time-slot">08:30 - 10:00</div>
         <div class="event-title">Fort Canning Tree Tunnel</div>
-        <div class="event-desc">Arrive by 08:30 to skip long lines. Upward spiral staircase ultra-wide shots with overhead canopy.</div>
-        <span class="tag">High Priority Early</span>
+        <div class="event-desc">Arrive by 08:30 to skip long queues. Upward spiral staircase framing with overhead canopy.</div>
+        <span class="tag">Arrive Early</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">10:00 - 10:45</div>
@@ -198,20 +205,20 @@
       <div class="timeline-card">
         <div class="time-slot">10:45 - 11:30</div>
         <div class="event-title">The Merlion & Boat Quay Promenade</div>
-        <div class="event-desc">Stroll past Cavenagh Bridge to Merlion Park. Postcard frame: Merlion spout with Marina Bay Sands in background.</div>
-        <span class="tag">Must-See Icon</span>
+        <div class="event-desc">Stroll past Cavenagh Bridge to Merlion Park. Iconic frame: Merlion spout with Marina Bay Sands backdrop.</div>
+        <span class="tag">Classic Icon</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">11:45 - 13:00</div>
         <div class="event-title">Lunch: Amoy Street Food Centre</div>
-        <div class="event-desc">Stroll up Telok Ayer. Beat CBD lunch rush. Han Kee Fish Soup or A Noodle Story (~SGD $8, Cash).</div>
+        <div class="event-desc">Beat CBD lunch peak. Han Kee Fish Soup or A Noodle Story (~SGD $8.00, Cash).</div>
         <span class="tag">Hawker Lunch</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">13:00 - 14:15</div>
-        <div class="event-title">Telok Ayer Heritage Shophouses</div>
-        <div class="event-desc">Thian Hock Kheng Temple facade and street architecture while waiting for CapitaSpring deck to open.</div>
-        <span class="tag">Shophouse Walk</span>
+        <div class="event-title">Telok Ayer Shophouses</div>
+        <div class="event-desc">Thian Hock Kheng Temple facade and street architecture while waiting for CapitaSpring deck opening.</div>
+        <span class="tag">Street Walk</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">14:30 - 15:30</div>
@@ -222,8 +229,8 @@
       <div class="timeline-card">
         <div class="time-slot">16:00 - 18:30</div>
         <div class="event-title">Gardens by the Bay Conservatories</div>
-        <div class="event-desc">Cloud Forest indoor waterfall + Flower Dome. (Keep camera zipped in bag 5 mins upon exit to stop fogging).</div>
-        <span class="tag">Pre-Booked Pass</span>
+        <div class="event-desc">Cloud Forest indoor waterfall + Flower Dome. (Keep camera zipped 5 mins upon exit to stop fogging).</div>
+        <span class="tag">Pass Booked</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">18:30 - 20:00</div>
@@ -234,47 +241,53 @@
       <div class="timeline-card urgent">
         <div class="time-slot">20:00 - 21:00 (STRICT 21:00 CLOSE)</div>
         <div class="event-title">The Pinnacle@Duxton Skybridge</div>
-        <div class="event-desc">DT Line (Bayfront $\rightarrow$ Chinatown $\rightarrow$ Maxwell). Pay SGD $6 via contactless card at Blk 1G L1. Shoot 50th-floor panorama before 21:00 shutdown.</div>
+        <div class="event-desc">DT Line (Bayfront $\rightarrow$ Chinatown $\rightarrow$ Maxwell). Pay SGD $6 via contactless card at Blk 1G L1. 50th-floor panorama before 21:00 shutoff.</div>
         <span class="tag">Strict Cutoff</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">21:15 onwards</div>
         <div class="event-title">Dinner: Tanjong Pagar / Duxton Hill</div>
-        <div class="event-desc">Relaxed post-shoot meal in the Duxton heritage area or stroll back to Clarke Quay base.</div>
-        <span class="tag">Late Meal</span>
+        <div class="event-desc">Relaxed meal in Duxton heritage enclave or 15-minute walk back to base.</div>
+        <span class="tag">Late Dinner</span>
       </div>
     </div>
 
     <!-- Day 3 -->
     <div id="day-3" class="day-content" style="display:none;">
       <div class="timeline-card">
-        <div class="time-slot">09:00 - 11:30</div>
+        <div class="time-slot">09:00 - 10:15</div>
         <div class="event-title">Chinatown Heritage Grid</div>
-        <div class="event-desc">Buddha Tooth Relic Temple, Pagoda & Sago Street shophouse columns and morning market textures.</div>
-        <span class="tag">Street Photography</span>
+        <div class="event-desc">Pagoda & Sago Street shophouses, traditional medicine halls, and morning market textures.</div>
+        <span class="tag">Heritage Walk</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">10:15 - 11:30</div>
+        <div class="event-title">Buddha Tooth Relic Temple & Rooftop Pagoda</div>
+        <div class="event-desc">Tang Dynasty architecture. Photograph the interior Golden Stupa, then take the lift to the Level 4/Roof garden to shoot the orchid pavilion and giant Vairocana prayer wheel.</div>
+        <span class="tag">Temple & Roof Garden</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">11:30 - 12:30</div>
         <div class="event-title">Lunch: Maxwell Food Centre</div>
-        <div class="event-desc">Tian Tian or Ah Tai Hainanese Chicken Rice (~SGD $8, Cash).</div>
+        <div class="event-desc">Tian Tian or Ah Tai Hainanese Chicken Rice (~SGD $8.00, Cash). Located directly across the road.</div>
         <span class="tag">Hawker Lunch</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">12:35 - 15:30</div>
         <div class="event-title">Southern Ridges & Henderson Waves</div>
-        <div class="event-desc">Direct Bus 145 from South Bridge Rd. Walk the architectural wooden wave ribs and elevated forest bridge walk.</div>
-        <span class="tag">Nature & Structure</span>
+        <div class="event-desc">Direct Bus 145 from South Bridge Rd. Curved architectural ribs walk and canopy forest walkway.</div>
+        <span class="tag">Architecture & Trails</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">15:30 - 18:00</div>
         <div class="event-title">Sentosa / Fort Siloso Skywalk</div>
-        <div class="event-desc">Connect down to HarbourFront $\rightarrow$ Fort Siloso elevated skywalk for coastal sunset light.</div>
-        <span class="tag">Golden Hour</span>
+        <div class="event-desc">Connect down to HarbourFront $\rightarrow$ Fort Siloso elevated skywalk for coastal sunset golden hour.</div>
+        <span class="tag">Sunset Walk</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">18:30 onwards</div>
         <div class="event-title">Dinner @ VivoCity & Return</div>
-        <div class="event-desc">Casual dinner at VivoCity waterfront, NE Line directly back to Clarke Quay.</div>
+        <div class="event-desc">Waterfront dinner at VivoCity, NE Line directly back to Clarke Quay.</div>
         <span class="tag">Dinner</span>
       </div>
     </div>
@@ -284,13 +297,13 @@
       <div class="timeline-card">
         <div class="time-slot">08:30 - 10:30</div>
         <div class="event-title">National Orchid Garden</div>
-        <div class="event-desc">DT Line to Botanic Gardens. Macro orchid photography (SGD $15 entry, Apple Pay).</div>
-        <span class="tag">Flora & Macro</span>
+        <div class="event-desc">DT Line to Botanic Gardens. Macro orchid photography (SGD $15.00 entry, Apple Pay).</div>
+        <span class="tag">Flora Macro</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">10:30 - 11:15</div>
         <div class="event-title">Lunch: Adam Road Food Centre</div>
-        <div class="event-desc">Selera Rasa Nasi Lemak right by the MRT entrance (~SGD $6.50, Cash).</div>
+        <div class="event-desc">Selera Rasa Nasi Lemak right by the MRT exit (~SGD $6.50, Cash).</div>
         <span class="tag">Hawker Lunch</span>
       </div>
       <div class="timeline-card urgent">
@@ -301,8 +314,8 @@
       </div>
       <div class="timeline-card">
         <div class="time-slot">12:30 - 17:00</div>
-        <div class="event-title">Jewel Changi Rain Vortex & SQ898</div>
-        <div class="event-desc">Transfer to Changi. Use Early Bag Drop for SQ898. Photograph Rain Vortex wide-angle from L1–L5, board flight home.</div>
+        <div class="event-title">MRT to Changi & Jewel Rain Vortex</div>
+        <div class="event-desc">Fort Canning (DT20) $\rightarrow$ Bugis $\rightarrow$ Tanah Merah $\rightarrow$ Changi Airport (SGD $2.18). Early bag drop for SQ898, photograph Rain Vortex, board flight home.</div>
         <span class="tag">Final Departure</span>
       </div>
     </div>
@@ -347,16 +360,14 @@
   </main>
 
   <script>
-    // Exchange Rates (Fixed base reference: 1 SGD ≈ 1.10 AUD, 1 SGD ≈ 6.14 HKD)
     const AUD_RATE = 1.10;
     const HKD_RATE = 6.14;
 
-    // View Switching
-    function switchTab(tabId) {
+    function switchTab(tabId, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
       
-      event.target.classList.add('active');
+      event.currentTarget.classList.add('active');
       document.getElementById(tabId).classList.add('active');
 
       if (tabId === 'map-view') {
@@ -373,10 +384,11 @@
       });
     }
 
-    // Leaflet Map Initialization
+    // Direct OSM Tiles - No API key needed
     const map = L.map('map').setView([1.288, 103.850], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap'
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     const locations = [
@@ -384,6 +396,7 @@
       { name: "Heap Seng Leong", coords: [1.3040, 103.8584], desc: "Kopi Gu You Breakfast (Day 1)" },
       { name: "Sultan Mosque (Kampong Glam)", coords: [1.3023, 103.8590], desc: "Heritage Street Walk (Day 1)" },
       { name: "House of Tan Teng Niah (Little India)", coords: [1.3061, 103.8519], desc: "Rainbow Villa Architecture (Day 1)" },
+      { name: "Raffles Hotel Singapore", coords: [1.2949, 103.8545], desc: "Colonial Courtyards & Facade (Day 1)" },
       { name: "Golden Mile Food Centre", coords: [1.3031, 103.8640], desc: "Claypot & Noodles (Day 1)" },
       { name: "Spectra & Helix Bridge", coords: [1.2863, 103.8608], desc: "Bayfront Night Photography (Day 1)" },
       { name: "Lau Pa Sat Satay Street", coords: [1.2806, 103.8504], desc: "Outdoor Charcoal Satay (Day 1)" },
@@ -394,6 +407,7 @@
       { name: "CapitaSpring Sky Garden", coords: [1.2842, 103.8508], desc: "L51 Panoramas @ 14:30 (Day 2)" },
       { name: "Gardens by the Bay Domes", coords: [1.2816, 103.8636], desc: "Cloud Forest & Supertrees (Day 2)" },
       { name: "Pinnacle@Duxton Skybridge", coords: [1.2764, 103.8415], desc: "50F Skybridge - Closes 21:00 (Day 2)" },
+      { name: "Buddha Tooth Relic Temple & Roof", coords: [1.2815, 103.8443], desc: "Tang Dynasty Temple & Rooftop Pagoda (Day 3)" },
       { name: "Maxwell Food Centre", coords: [1.2803, 103.8447], desc: "Chicken Rice Lunch (Day 3)" },
       { name: "Henderson Waves", coords: [1.2761, 103.8155], desc: "Curved Wooden Ribs Walk (Day 3)" },
       { name: "Fort Siloso Skywalk", coords: [1.2592, 103.8109], desc: "Sentosa Sunset Coastal View (Day 3)" },
@@ -405,7 +419,7 @@
       L.marker(loc.coords).addTo(map).bindPopup(`<b>${loc.name}</b><br>${loc.desc}`);
     });
 
-    // Expenses Logger Logic
+    // Local Storage Expense Logger
     let expenses = JSON.parse(localStorage.getItem('sg_trip_expenses')) || [
       { id: 1, name: "Initial Cash Reserve", amount: 0, method: "Cash", time: "Setup" }
     ];
@@ -481,7 +495,6 @@
       document.getElementById('cash-spent').textContent = `SGD $${cashSpentSGD.toFixed(2)}`;
     }
 
-    // Initial Render
     renderExpenses();
   </script>
 </body>
