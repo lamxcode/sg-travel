@@ -53,6 +53,7 @@
       padding: 14px; margin-bottom: 12px; position: relative;
     }
     .timeline-card.urgent { border-left: 4px solid var(--accent-amber); }
+    .timeline-card.added { border-left: 4px solid var(--accent); }
     .time-slot { font-size: 0.78rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; }
     .event-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
     .event-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
@@ -129,7 +130,7 @@
       <div class="timeline-card">
         <div class="time-slot">06:15 - 07:30</div>
         <div class="event-title">Touchdown & Changi Setup</div>
-        <div class="event-desc">SQ216 automated gates, 2x 29" bags, pick up Tourist SIM, withdraw SGD $150 at HSBC ATM.</div>
+        <div class="event-desc">SQ216 automated clearance, 2x 29" bags, pick up Tourist SIM, withdraw SGD $150 at HSBC ATM.</div>
         <span class="tag">Changi T3</span>
       </div>
       <div class="timeline-card">
@@ -150,22 +151,22 @@
         <div class="event-desc">Sultan Mosque exterior framing, Muscat St, quiet morning Haji Lane facades.</div>
         <span class="tag">Photo Walk</span>
       </div>
-      <div class="timeline-card">
-        <div class="time-slot">10:30 - 11:30</div>
+      <div class="timeline-card added">
+        <div class="time-slot">10:30 - 11:30 (INCLUDED)</div>
         <div class="event-title">Little India & House of Tan Teng Niah</div>
-        <div class="event-desc">Walk or DT Line to Little India. Ultra-wide facade framing of the vibrant Tan Teng Niah villa + Serangoon Rd street life.</div>
-        <span class="tag">16–28mm Lens</span>
+        <div class="event-desc">Walk or DT Line to Little India. Ultra-wide exterior framing of the famous rainbow villa (Kerbau Rd) + Serangoon Rd street scenes.</div>
+        <span class="tag">16–28mm Wide Lens</span>
       </div>
-      <div class="timeline-card">
-        <div class="time-slot">11:30 - 12:15</div>
+      <div class="timeline-card added">
+        <div class="time-slot">11:30 - 12:15 (INCLUDED)</div>
         <div class="event-title">Raffles Hotel Colonial Architecture</div>
-        <div class="event-desc">Stroll south down Beach Rd. Photograph the Palm Court, white cast-iron colonnades, and grand neo-Renaissance hotel facade.</div>
+        <div class="event-desc">Walk south down Beach Rd. Photograph the grand colonial facade, Palm Court, and white cast-iron colonnades.</div>
         <span class="tag">Colonial Heritage</span>
       </div>
       <div class="timeline-card">
         <div class="time-slot">12:30 - 13:45</div>
         <div class="event-title">Lunch: Golden Mile Food Centre</div>
-        <div class="event-desc">Bus 100/961 to Golden Mile. Claypot chicken rice or Hokkien mee (~SGD $8.00, Cash).</div>
+        <div class="event-desc">Bus 100/961 straight down Beach Rd. Claypot chicken rice or Hokkien mee (~SGD $8.00, Cash).</div>
         <span class="tag">Hawker Lunch</span>
       </div>
       <div class="timeline-card">
@@ -202,8 +203,8 @@
         <div class="event-desc">927 rainbow shutters exterior. Wide-angle perspective across the road junction.</div>
         <span class="tag">Architecture</span>
       </div>
-      <div class="timeline-card">
-        <div class="time-slot">10:45 - 11:30</div>
+      <div class="timeline-card added">
+        <div class="time-slot">10:45 - 11:30 (INCLUDED)</div>
         <div class="event-title">The Merlion & Boat Quay Promenade</div>
         <div class="event-desc">Stroll past Cavenagh Bridge to Merlion Park. Iconic frame: Merlion spout with Marina Bay Sands backdrop.</div>
         <span class="tag">Classic Icon</span>
@@ -260,10 +261,10 @@
         <div class="event-desc">Pagoda & Sago Street shophouses, traditional medicine halls, and morning market textures.</div>
         <span class="tag">Heritage Walk</span>
       </div>
-      <div class="timeline-card">
-        <div class="time-slot">10:15 - 11:30</div>
+      <div class="timeline-card added">
+        <div class="time-slot">10:15 - 11:30 (INCLUDED)</div>
         <div class="event-title">Buddha Tooth Relic Temple & Rooftop Pagoda</div>
-        <div class="event-desc">Tang Dynasty architecture. Photograph the interior Golden Stupa, then take the lift to the Level 4/Roof garden to shoot the orchid pavilion and giant Vairocana prayer wheel.</div>
+        <div class="event-desc">Tang Dynasty architecture. Shoot the Golden Stupa hall, then take the lift to the Level 4/Roof garden to photograph the orchid pavilion and giant Vairocana prayer wheel.</div>
         <span class="tag">Temple & Roof Garden</span>
       </div>
       <div class="timeline-card">
@@ -384,13 +385,14 @@
       });
     }
 
-    // Direct OSM Tiles - No API key needed
+    // Direct OSM Tiles - Zero API Key Needed
     const map = L.map('map').setView([1.288, 103.850], 13);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // Complete Pin Manifest (Includes Little India, Raffles Hotel, The Merlion, Buddha Tooth Roof)
     const locations = [
       { name: "Base: Hotel Bencoolen", coords: [1.2882, 103.8475], desc: "47 Hongkong St - Base HQ" },
       { name: "Heap Seng Leong", coords: [1.3040, 103.8584], desc: "Kopi Gu You Breakfast (Day 1)" },
@@ -407,6 +409,7 @@
       { name: "CapitaSpring Sky Garden", coords: [1.2842, 103.8508], desc: "L51 Panoramas @ 14:30 (Day 2)" },
       { name: "Gardens by the Bay Domes", coords: [1.2816, 103.8636], desc: "Cloud Forest & Supertrees (Day 2)" },
       { name: "Pinnacle@Duxton Skybridge", coords: [1.2764, 103.8415], desc: "50F Skybridge - Closes 21:00 (Day 2)" },
+      { name: "Chinatown Shophouses", coords: [1.2828, 103.8440], desc: "Pagoda & Sago St Heritage (Day 3)" },
       { name: "Buddha Tooth Relic Temple & Roof", coords: [1.2815, 103.8443], desc: "Tang Dynasty Temple & Rooftop Pagoda (Day 3)" },
       { name: "Maxwell Food Centre", coords: [1.2803, 103.8447], desc: "Chicken Rice Lunch (Day 3)" },
       { name: "Henderson Waves", coords: [1.2761, 103.8155], desc: "Curved Wooden Ribs Walk (Day 3)" },
