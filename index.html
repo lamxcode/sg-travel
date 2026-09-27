@@ -1,715 +1,488 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  
-  <!-- iOS Standalone App Meta Tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="SG Hub">
-  <meta name="theme-color" content="#090d16">
-
-  <title>Singapore Stopover Hub</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>SG Stopover Command Center</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: #131b2e;
-      --card-inner: #1c2742;
-      --accent: #38bdf8;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
       --text: #f8fafc;
-      --muted: #94a3b8;
-      --border: #23314f;
-      --tag-photo: #f43f5e;
-      --tag-food: #f59e0b;
-      --tag-transit: #10b981;
-      --tag-alert: #ec4899;
-      --danger: #ef4444;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-green: #34d399;
+      --accent-amber: #fbbf24;
+      --border: #334155;
     }
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: env(safe-area-inset-top, 24px) 16px env(safe-area-inset-bottom, 24px) 16px;
-      -webkit-font-smoothing: antialiased;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
     header {
-      padding: 10px 0 14px 0;
-      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 1000;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
     }
-    h1 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: -0.5px;
-      color: #ffffff;
-    }
-    .base-info {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+    header h1 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+    .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 999px; background: rgba(56, 189, 248, 0.15); color: var(--accent); }
     
-    /* Interactive Embedded Map */
-    .map-container {
-      margin-top: 12px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
-      position: relative;
+    .nav-tabs {
+      display: flex; background: var(--card-bg); border-bottom: 1px solid var(--border);
     }
-    .map-header {
-      padding: 8px 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-inner);
-      border-bottom: 1px solid var(--border);
+    .tab-btn {
+      flex: 1; padding: 12px; border: none; background: none; color: var(--text-muted);
+      font-weight: 600; font-size: 0.9rem; cursor: pointer; text-align: center;
     }
-    .map-header span#currentMapLoc {
-      color: var(--accent);
-      font-weight: 700;
+    .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+    .view-panel { display: none; padding: 16px; }
+    .view-panel.active { display: block; }
+
+    /* Itinerary List */
+    .day-selector { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+    .day-btn {
+      flex: 1; min-width: 70px; padding: 8px 12px; background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 0.85rem; font-weight: 600; cursor: pointer;
     }
-    iframe#gmap_canvas {
-      width: 100%;
-      height: 210px;
-      border: 0;
-      display: block;
+    .day-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    
+    .timeline-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; margin-bottom: 12px; position: relative;
+    }
+    .timeline-card.urgent { border-left: 4px solid var(--accent-amber); }
+    .time-slot { font-size: 0.78rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; }
+    .event-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+    .event-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+    .tag { display: inline-block; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: var(--border); margin-top: 6px; color: var(--text); }
+
+    /* Map */
+    #map { height: calc(100vh - 170px); width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+
+    /* Logger */
+    .summary-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; margin-bottom: 16px;
+    }
+    .summary-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+    .balance-display { font-size: 1.5rem; font-weight: 800; color: var(--accent-green); }
+    .rates-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+    
+    .input-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; margin-bottom: 16px;
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
+    .form-control {
+      width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; border: 1px solid var(--border);
+      color: var(--text); font-size: 0.95rem;
+    }
+    .radio-row { display: flex; gap: 12px; margin-top: 4px; }
+    .radio-row label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+    .btn-submit {
+      width: 100%; padding: 12px; border-radius: 8px; background: var(--accent); border: none;
+      color: #000; font-weight: 700; cursor: pointer; font-size: 0.95rem;
     }
 
-    /* Live Currency Converter */
-    .converter-card {
-      background: linear-gradient(145deg, #131b2e, #1e293b);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-top: 12px;
-    }
-    .box-title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-    .conv-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .conv-input {
-      background: #090d16;
-      border: 1px solid var(--border);
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 8px;
-      width: 100px;
-      text-align: center;
-    }
-    .conv-output {
-      font-size: 0.85rem;
-      color: #cbd5e1;
-      line-height: 1.3;
-    }
-    .conv-val {
-      font-weight: 700;
-      color: #38bdf8;
-    }
-
-    /* Segmented Navigation */
-    .segmented-control {
-      display: flex;
-      background: var(--card-bg);
-      padding: 3px;
-      border-radius: 10px;
-      margin: 16px 0;
-      border: 1px solid var(--border);
-      overflow-x: auto;
-    }
-    .segment-btn {
-      flex: 1;
-      min-width: 58px;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      padding: 8px 3px;
-      font-size: 0.74rem;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-    .segment-btn.active {
-      background: var(--accent);
-      color: #090d16;
-      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
-    }
-    
-    /* Content Cards */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .time {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--accent);
-      font-variant-numeric: tabular-nums;
-    }
-    .badge {
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .badge-transit { background: rgba(16, 185, 129, 0.15); color: var(--tag-transit); border: 1px solid var(--tag-transit); }
-    .badge-photo { background: rgba(244, 63, 94, 0.15); color: var(--tag-photo); border: 1px solid var(--tag-photo); }
-    .badge-food { background: rgba(245, 158, 11, 0.15); color: var(--tag-food); border: 1px solid var(--tag-food); }
-    .badge-alert { background: rgba(236, 72, 153, 0.15); color: var(--tag-alert); border: 1px solid var(--tag-alert); }
-    
-    .title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: #ffffff;
-    }
-    .desc {
-      font-size: 0.82rem;
-      color: #cbd5e1;
-      line-height: 1.4;
-    }
-    
-    /* Action Buttons in Card */
-    .action-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 10px;
-    }
-    .map-btn {
-      background: var(--card-inner);
-      color: var(--accent);
-      border: 1px solid var(--border);
-      padding: 5px 9px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .ext-btn {
-      color: var(--muted);
-      text-decoration: none;
-    }
-
-    /* Money Logger UI */
-    .logger-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .stat-box {
-      background: var(--card-inner);
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    .stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
-    .stat-num { font-size: 1rem; font-weight: 700; color: #fff; margin-top: 2px; }
-    
-    .log-form {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: var(--card-inner);
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      margin-bottom: 12px;
-    }
-    .log-inputs {
-      display: flex;
-      gap: 6px;
-    }
-    .log-input {
-      background: #090d16;
-      border: 1px solid var(--border);
-      color: #fff;
-      font-size: 0.85rem;
-      padding: 8px 10px;
-      border-radius: 6px;
-    }
-    .log-input-desc { flex: 2; }
-    .log-input-amt { flex: 1; text-align: right; }
-    .log-btn {
-      background: var(--accent);
-      color: #090d16;
-      border: none;
-      font-weight: 700;
-      font-size: 0.85rem;
-      padding: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .log-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
+    .log-list { list-style: none; }
     .log-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.82rem;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
     }
-    .log-item:last-child { border-bottom: none; }
-    .log-del {
-      color: var(--danger);
-      background: transparent;
-      border: none;
-      font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      padding: 0 6px;
-    }
-    .rules-list {
-      padding-left: 18px;
-      margin: 6px 0 0 0;
-      font-size: 0.8rem;
-      color: #cbd5e1;
-    }
-    .rules-list li { margin-bottom: 8px; }
+    .log-details { display: flex; flex-direction: column; }
+    .log-desc { font-weight: 600; font-size: 0.9rem; }
+    .log-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .log-amount { text-align: right; }
+    .log-sgd { font-weight: 700; color: var(--text); }
+    .log-converted { font-size: 0.75rem; color: var(--text-muted); }
+    .btn-del { background: none; border: none; color: #ef4444; font-size: 0.8rem; cursor: pointer; margin-left: 8px; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>🇸🇬 Singapore Stopover Hub</h1>
-    <div class="base-info">📍 Hotel Bencoolen (47 Hongkong St) • Master Log</div>
-    
-    <!-- Live Interactive Google Map Frame -->
-    <div class="map-container">
-      <div class="map-header">
-        <span>Map View: <span id="currentMapLoc">Hotel Bencoolen (Base)</span></span>
-        <button class="map-btn" onclick="setMap('47+Hongkong+Street+Singapore', 'Hotel Bencoolen (Base)')">Reset to Base</button>
-      </div>
-      <iframe id="gmap_canvas" src="https://maps.google.com/maps?q=47+Hongkong+Street+Singapore&t=&z=16&ie=UTF8&iwloc=&output=embed" loading="lazy"></iframe>
-    </div>
-
-    <!-- Live Currency Converter (SGD -> HKD & AUD) -->
-    <div class="converter-card">
-      <div class="box-title">⚡ SGD Converter (HKD & AUD)</div>
-      <div class="conv-row">
-        <span style="font-weight:700;font-size:0.9rem;">SGD $</span>
-        <input type="number" id="sgdInput" class="conv-input" value="10" min="1" oninput="convertCurrency()">
-        <div class="conv-output">
-          = <span id="hkdOutput" class="conv-val">HK$ 61.40</span><br>
-          = <span id="audOutput" class="conv-val">AUD $11.00</span>
-        </div>
-      </div>
-    </div>
+    <h1>SG Stopover Command</h1>
+    <span class="badge">4D3N • SQ216 / SQ898</span>
   </header>
 
-  <div class="segmented-control">
-    <button class="segment-btn active" onclick="showTab('d1')">Day 1</button>
-    <button class="segment-btn" onclick="showTab('d2')">Day 2</button>
-    <button class="segment-btn" onclick="showTab('d3')">Day 3</button>
-    <button class="segment-btn" onclick="showTab('d4')">Day 4</button>
-    <button class="segment-btn" onclick="showTab('logger')">💰 Logger</button>
-    <button class="segment-btn" onclick="showTab('rules')">Rules</button>
-  </div>
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('itinerary')">📅 Itinerary</button>
+    <button class="tab-btn" onclick="switchTab('map-view')">🗺️ Map</button>
+    <button class="tab-btn" onclick="switchTab('logger')">💰 Logger</button>
+  </nav>
 
-  <!-- DAY 1 -->
-  <div id="d1" class="tab-view">
-    <div class="card">
-      <div class="card-header"><span class="time">06:15 – 07:15</span><span class="badge badge-transit">Arrival</span></div>
-      <div class="title">Touchdown & Biometric Clearance</div>
-      <div class="desc">SQ216 arrives. Pass automated biometric gates & collect 2x 29" bags.</div>
+  <!-- ITINERARY VIEW -->
+  <main id="itinerary" class="view-panel active">
+    <div class="day-selector">
+      <button class="day-btn active" onclick="showDay(1)">Day 1</button>
+      <button class="day-btn" onclick="showDay(2)">Day 2</button>
+      <button class="day-btn" onclick="showDay(3)">Day 3</button>
+      <button class="day-btn" onclick="showDay(4)">Day 4</button>
     </div>
-    <div class="card">
-      <div class="card-header"><span class="time">07:15 – 07:30</span><span class="badge badge-transit">Terminal</span></div>
-      <div class="title">100GB SIM Card & HSBC ATM</div>
-      <div class="desc">Arrival Hall L1: Pick up Klook SIM & withdraw cash at HSBC ATM.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Changi+Airport+Terminal+3', 'Changi T3 Arrival')">🗺️ Show on Map</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">07:30 – 08:20</span><span class="badge badge-transit">MRT</span></div>
-      <div class="title">Changi (CG2) → Raffles Place (EW14)</div>
-      <div class="desc">Cross-platform at Tanah Merah. Exit G, walk 650m via North Canal Rd to Hotel Bencoolen to drop bags.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('47+Hongkong+Street+Singapore', 'Hotel Bencoolen')">🗺️ Show Hotel</button>
-        <a href="https://maps.apple.com/?daddr=47+Hongkong+Street+Singapore" class="map-btn ext-btn" target="_blank">↗ Turn-by-Turn</a>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">08:35 – 09:45</span><span class="badge badge-food">Hawker</span></div>
-      <div class="title">Breakfast: Heap Seng Leong</div>
-      <div class="desc">Bus 190/147 up North Bridge Rd. Signature Kopi Gu You (butter coffee) & kaya toast.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Heap+Seng+Leong+Singapore', 'Heap Seng Leong')">🗺️ Show on Map</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">09:45 – 12:15</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Kampong Glam Heritage</div>
-      <div class="desc">Sultan Mosque, Muscat St murals, Arab St & uncrowded morning Haji Lane shophouses.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Haji+Lane+Singapore', 'Haji Lane')">🗺️ Haji Lane</button>
-        <button class="map-btn" onclick="setMap('Sultan+Mosque+Singapore', 'Sultan Mosque')">🗺️ Sultan Mosque</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">12:15 – 13:45</span><span class="badge badge-food">Hawker</span></div>
-      <div class="title">Lunch: Golden Mile Food Centre</div>
-      <div class="desc">Claypot Rice, Hainanese Mutton Soup, or Fried Hokkien Mee.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Golden+Mile+Food+Centre+Singapore', 'Golden Mile Hawker')">🗺️ Show on Map</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">14:00 – 16:30</span><span class="badge badge-transit">Hotel</span></div>
-      <div class="title">Check-in (15:00) & Gear Prep</div>
-      <div class="desc">Downtown Line back to base. Check in at 15:00, unpack, charge batteries, rest.</div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">17:00 – 21:00</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Marina Bay Sands & Waterfront</div>
-      <div class="desc">Downtown Line to Bayfront. Helix Bridge framing & 20:00 Spectra Light Show.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Helix+Bridge+Singapore', 'Helix Bridge')">🗺️ Helix Bridge</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">21:00 – 22:30</span><span class="badge badge-food">Hawker</span></div>
-      <div class="title">Dinner: Lau Pa Sat Satay Street</div>
-      <div class="desc">Boon Tat St charcoal satay under skyscrapers. 8-min walk home to hotel.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Lau+Pa+Sat+Singapore', 'Lau Pa Sat')">🗺️ Lau Pa Sat</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- DAY 2 -->
-  <div id="d2" class="tab-view" style="display:none;">
-    <div class="card">
-      <div class="card-header"><span class="time">08:30 – 10:00</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Fort Canning Tree Tunnel</div>
-      <div class="desc">5-min walk across Canning Rise. Shoot spiral staircase before queues form.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Fort+Canning+Tree+Tunnel+Singapore', 'Tree Tunnel')">🗺️ Show on Map</button>
+    <!-- Day 1 -->
+    <div id="day-1" class="day-content">
+      <div class="timeline-card">
+        <div class="time-slot">06:15 - 07:30</div>
+        <div class="event-title">Touchdown & Changi Setup</div>
+        <div class="event-desc">SQ216 biometric clearance, 2x 29" bags, pick up 100GB Tourist SIM, withdraw SGD $150 at HSBC ATM.</div>
+        <span class="tag">Changi T3</span>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">10:00 – 11:30</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Old Hill Street Police Station</div>
-      <div class="desc">927 rainbow shutters facade & Clarke Quay riverside shopfronts.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Old+Hill+Street+Police+Station+Singapore', 'Old Hill St Police')">🗺️ Show on Map</button>
+      <div class="timeline-card">
+        <div class="time-slot">07:30 - 08:20</div>
+        <div class="event-title">Luggage Drop @ Hotel Bencoolen</div>
+        <div class="event-desc">GrabCar (6-seater) to 47 Hongkong St (~SGD $35). Drop bags at reception prior to check-in.</div>
+        <span class="tag">Clarke Quay</span>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">11:30 – 14:00</span><span class="badge badge-food">Hawker</span></div>
-      <div class="title">CBD Lunch & CapitaSpring</div>
-      <div class="desc">Amoy Street Food Centre. (Note: CapitaSpring L51 Sky Garden opens at 14:30).</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Amoy+Street+Food+Centre+Singapore', 'Amoy Hawker')">🗺️ Amoy Hawker</button>
-        <button class="map-btn" onclick="setMap('CapitaSpring+Singapore', 'CapitaSpring')">🗺️ CapitaSpring</button>
+      <div class="timeline-card">
+        <div class="time-slot">08:35 - 09:30</div>
+        <div class="event-title">Breakfast: Heap Seng Leong</div>
+        <div class="event-desc">Kopi Gu You (butter coffee) + kaya toast. Cash only (~SGD $4.50).</div>
+        <span class="tag">Cash Only</span>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">14:30 – 18:30</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Gardens by the Bay Conservatories</div>
-      <div class="desc">Downtown Line to Bayfront. Cloud Forest waterfall & Flower Dome.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Cloud+Forest+Singapore', 'Cloud Forest')">🗺️ Cloud Forest</button>
+      <div class="timeline-card">
+        <div class="time-slot">09:30 - 10:45</div>
+        <div class="event-title">Kampong Glam Heritage</div>
+        <div class="event-desc">Sultan Mosque exterior framing, Muscat St, quiet morning Haji Lane facades.</div>
+        <span class="tag">Photo Walk</span>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">18:30 – 20:30</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Supertree Grove & Light Show</div>
-      <div class="desc">Twilight shots at base of Supertrees; watch 19:45 Garden Rhapsody show.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Supertree+Grove+Singapore', 'Supertree Grove')">🗺️ Supertrees</button>
+      <div class="timeline-card">
+        <div class="time-slot">10:45 - 12:15</div>
+        <div class="event-title">Little India & House of Tan Teng Niah</div>
+        <div class="event-desc">Walk or DT Line to Little India. Ultra-wide facade shots of vibrant Tan Teng Niah villa + Serangoon Rd street life.</div>
+        <span class="tag">16–28mm Wide</span>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">20:30 – 22:00</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Pinnacle@Duxton Skybridge</div>
-      <div class="desc">Pay $6 SGD via contactless at Blk 1G L1. 50th-floor 360° city night panorama.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('The+Pinnacle@Duxton+Singapore', 'Pinnacle@Duxton')">🗺️ Show on Map</button>
+      <div class="timeline-card">
+        <div class="time-slot">12:30 - 13:45</div>
+        <div class="event-title">Lunch: Golden Mile Food Centre</div>
+        <div class="event-desc">Bus 961/170 to Golden Mile. Claypot chicken rice or Hokkien mee (~SGD $8, Cash).</div>
+        <span class="tag">Hawker Lunch</span>
       </div>
-    </div>
-  </div>
-
-  <!-- DAY 3 -->
-  <div id="d3" class="tab-view" style="display:none;">
-    <div class="card">
-      <div class="card-header"><span class="time">09:00 – 11:30</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Chinatown Heritage Grid</div>
-      <div class="desc">Buddha Tooth Relic Temple, Pagoda St & Sago St shophouse facades.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Buddha+Tooth+Relic+Temple+Singapore', 'Buddha Tooth Relic')">🗺️ Show on Map</button>
+      <div class="timeline-card">
+        <div class="time-slot">14:00 - 16:30</div>
+        <div class="event-title">Hotel Check-In & Recharge</div>
+        <div class="event-desc">Check in at 47 Hongkong St, AC rest, shower, charge camera gear during peak afternoon heat.</div>
+        <span class="tag">Hotel Rest</span>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">11:30 – 12:30</span><span class="badge badge-food">Hawker</span></div>
-      <div class="title">Lunch: Maxwell Food Centre</div>
-      <div class="desc">Tian Tian Chicken Rice, Ah Tai, or Fuzhou Oyster Cake.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Maxwell+Food+Centre+Singapore', 'Maxwell Hawker')">🗺️ Maxwell</button>
+      <div class="timeline-card">
+        <div class="time-slot">17:00 - 21:00</div>
+        <div class="event-title">Marina Bay & Spectra Light Show</div>
+        <div class="event-desc">DT Line to Bayfront. Helix Bridge framing, Marina Bay waterfront, 20:00 Spectra show.</div>
+        <span class="tag">Night Shoot</span>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">12:30 – 16:00</span><span class="badge badge-transit">Direct Bus</span></div>
-      <div class="title">Southern Ridges & Henderson Waves</div>
-      <div class="desc">Take Bus 145 from South Bridge Rd straight to Henderson Rd. Canopy walk.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Henderson+Waves+Singapore', 'Henderson Waves')">🗺️ Henderson Waves</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">16:30 – 19:30</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Sentosa Coastal Golden Hour</div>
-      <div class="desc">Siloso Beach & Fort Siloso elevated skywalk for sunset sea views.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Fort+Siloso+Skywalk+Singapore', 'Fort Siloso')">🗺️ Fort Siloso</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">20:00 – 21:30</span><span class="badge badge-food">Hawker</span></div>
-      <div class="title">VivoCity & Return via NEL</div>
-      <div class="desc">Dinner at HarbourFront, take North East Line direct to Clarke Quay Station (200m).</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('VivoCity+Singapore', 'VivoCity')">🗺️ VivoCity</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAY 4 -->
-  <div id="d4" class="tab-view" style="display:none;">
-    <div class="card">
-      <div class="card-header"><span class="time">08:30 – 10:30</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Botanic Gardens & Orchid Garden</div>
-      <div class="desc">Downtown Line to DT9. National Orchid Garden ($15 SGD) for macro plant shots.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('National+Orchid+Garden+Singapore', 'Orchid Garden')">🗺️ Orchid Garden</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">10:30 – 11:15</span><span class="badge badge-food">Hawker</span></div>
-      <div class="title">Lunch: Adam Road Food Centre</div>
-      <div class="desc">Located right outside garden gates. Famous for Nasi Lemak.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Adam+Road+Food+Centre+Singapore', 'Adam Road Hawker')">🗺️ Adam Road</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">11:45 – 12:00</span><span class="badge badge-alert">Checkout</span></div>
-      <div class="title">Hotel Checkout & Luggage Pickup</div>
-      <div class="desc">Completed before the 12:00 deadline. Collect packed 29" bags.</div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="time">12:30 – 17:00</span><span class="badge badge-photo">Photo</span></div>
-      <div class="title">Jewel Changi HSBC Rain Vortex</div>
-      <div class="desc">Early flight bag drop for SQ898. Shoot 7-story indoor waterfall before flight.</div>
-      <div class="action-row">
-        <button class="map-btn" onclick="setMap('Jewel+Changi+Airport', 'Jewel Changi')">🗺️ Jewel Changi</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MONEY LOGGER TAB -->
-  <div id="logger" class="tab-view" style="display:none;">
-    <div class="logger-stats">
-      <div class="stat-box">
-        <div class="stat-label">Total Spent</div>
-        <div id="totalSpent" class="stat-num">SGD $0.00</div>
-        <div id="totalSpentConverted" style="font-size:0.7rem; color:var(--muted); margin-top:2px;">HK$ 0.00 | AUD $0.00</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Remaining Budget</div>
-        <div id="remainingBudget" class="stat-num">SGD $718.70</div>
-        <div id="budgetStatus" style="font-size:0.7rem; color:var(--tag-transit); margin-top:2px;">On Track</div>
+      <div class="timeline-card">
+        <div class="time-slot">21:00 - 22:30</div>
+        <div class="event-title">Dinner: Lau Pa Sat Satay Street</div>
+        <div class="event-desc">Charcoal outdoor satay stalls along Boon Tat St (~SGD $15, Cash/Card). 8-min walk to hotel.</div>
+        <span class="tag">Late Dinner</span>
       </div>
     </div>
 
-    <div class="log-form">
-      <div class="box-title">➕ Log Expense (SGD)</div>
-      <div class="log-inputs">
-        <input type="text" id="expenseDesc" class="log-input log-input-desc" placeholder="e.g. Kaya Toast, MRT tap">
-        <input type="number" id="expenseAmt" class="log-input log-input-amt" placeholder="SGD $" step="0.10">
+    <!-- Day 2 -->
+    <div id="day-2" class="day-content" style="display:none;">
+      <div class="timeline-card">
+        <div class="time-slot">08:30 - 10:00</div>
+        <div class="event-title">Fort Canning Tree Tunnel</div>
+        <div class="event-desc">Arrive by 08:30 to skip long lines. Upward spiral staircase ultra-wide shots with overhead canopy.</div>
+        <span class="tag">High Priority Early</span>
       </div>
-      <button class="log-btn" onclick="addExpense()">Add Expense</button>
+      <div class="timeline-card">
+        <div class="time-slot">10:00 - 10:45</div>
+        <div class="event-title">Old Hill Street Police Station</div>
+        <div class="event-desc">927 rainbow shutters exterior. Wide-angle perspective across the road junction.</div>
+        <span class="tag">Architecture</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">10:45 - 11:30</div>
+        <div class="event-title">The Merlion & Boat Quay Promenade</div>
+        <div class="event-desc">Stroll past Cavenagh Bridge to Merlion Park. Postcard frame: Merlion spout with Marina Bay Sands in background.</div>
+        <span class="tag">Must-See Icon</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">11:45 - 13:00</div>
+        <div class="event-title">Lunch: Amoy Street Food Centre</div>
+        <div class="event-desc">Stroll up Telok Ayer. Beat CBD lunch rush. Han Kee Fish Soup or A Noodle Story (~SGD $8, Cash).</div>
+        <span class="tag">Hawker Lunch</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">13:00 - 14:15</div>
+        <div class="event-title">Telok Ayer Heritage Shophouses</div>
+        <div class="event-desc">Thian Hock Kheng Temple facade and street architecture while waiting for CapitaSpring deck to open.</div>
+        <span class="tag">Shophouse Walk</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">14:30 - 15:30</div>
+        <div class="event-title">CapitaSpring L51 Sky Garden</div>
+        <div class="event-desc">Access public deck right at 14:30 opening for open-air 360° financial district panoramas (Free).</div>
+        <span class="tag">Skyline View</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">16:00 - 18:30</div>
+        <div class="event-title">Gardens by the Bay Conservatories</div>
+        <div class="event-desc">Cloud Forest indoor waterfall + Flower Dome. (Keep camera zipped in bag 5 mins upon exit to stop fogging).</div>
+        <span class="tag">Pre-Booked Pass</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">18:30 - 20:00</div>
+        <div class="event-title">Supertree Grove & Garden Rhapsody</div>
+        <div class="event-desc">Wide-angle twilight shots; catch 19:45 Garden Rhapsody show from directly underneath.</div>
+        <span class="tag">Light Show</span>
+      </div>
+      <div class="timeline-card urgent">
+        <div class="time-slot">20:00 - 21:00 (STRICT 21:00 CLOSE)</div>
+        <div class="event-title">The Pinnacle@Duxton Skybridge</div>
+        <div class="event-desc">DT Line (Bayfront $\rightarrow$ Chinatown $\rightarrow$ Maxwell). Pay SGD $6 via contactless card at Blk 1G L1. Shoot 50th-floor panorama before 21:00 shutdown.</div>
+        <span class="tag">Strict Cutoff</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">21:15 onwards</div>
+        <div class="event-title">Dinner: Tanjong Pagar / Duxton Hill</div>
+        <div class="event-desc">Relaxed post-shoot meal in the Duxton heritage area or stroll back to Clarke Quay base.</div>
+        <span class="tag">Late Meal</span>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="box-title" style="margin:0;">Expense History</span>
-        <button onclick="clearAllExpenses()" style="background:transparent; border:none; color:var(--muted); font-size:0.7rem; cursor:pointer;">Reset</button>
+    <!-- Day 3 -->
+    <div id="day-3" class="day-content" style="display:none;">
+      <div class="timeline-card">
+        <div class="time-slot">09:00 - 11:30</div>
+        <div class="event-title">Chinatown Heritage Grid</div>
+        <div class="event-desc">Buddha Tooth Relic Temple, Pagoda & Sago Street shophouse columns and morning market textures.</div>
+        <span class="tag">Street Photography</span>
       </div>
-      <ul id="expenseList" class="log-list">
-        <li class="log-item" style="color:var(--muted); justify-content:center;">No expenses logged yet.</li>
-      </ul>
+      <div class="timeline-card">
+        <div class="time-slot">11:30 - 12:30</div>
+        <div class="event-title">Lunch: Maxwell Food Centre</div>
+        <div class="event-desc">Tian Tian or Ah Tai Hainanese Chicken Rice (~SGD $8, Cash).</div>
+        <span class="tag">Hawker Lunch</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">12:35 - 15:30</div>
+        <div class="event-title">Southern Ridges & Henderson Waves</div>
+        <div class="event-desc">Direct Bus 145 from South Bridge Rd. Walk the architectural wooden wave ribs and elevated forest bridge walk.</div>
+        <span class="tag">Nature & Structure</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">15:30 - 18:00</div>
+        <div class="event-title">Sentosa / Fort Siloso Skywalk</div>
+        <div class="event-desc">Connect down to HarbourFront $\rightarrow$ Fort Siloso elevated skywalk for coastal sunset light.</div>
+        <span class="tag">Golden Hour</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">18:30 onwards</div>
+        <div class="event-title">Dinner @ VivoCity & Return</div>
+        <div class="event-desc">Casual dinner at VivoCity waterfront, NE Line directly back to Clarke Quay.</div>
+        <span class="tag">Dinner</span>
+      </div>
     </div>
-  </div>
 
-  <!-- RULES -->
-  <div id="rules" class="tab-view" style="display:none;">
-    <div class="card">
-      <div class="title">Operational Field Notes</div>
-      <ul class="rules-list">
-        <li><b>Tree Tunnel:</b> Arrive strictly by 08:30 AM to beat long photo lines.</li>
-        <li><b>CapitaSpring L51 Access:</b> Weekdays 08:30–10:30 AM and 14:30–18:00 PM only.</li>
-        <li><b>Bus 145 Shortcut:</b> Takes you direct from Chinatown to Henderson Waves without MRT transfers.</li>
-        <li><b>Pinnacle@Duxton:</b> Buy $6 SGD ticket via contactless card at Block 1G L1 sales office.</li>
-        <li><b>SimplyGo:</b> Use the same physical card / Apple Pay device on every tap.</li>
-      </ul>
+    <!-- Day 4 -->
+    <div id="day-4" class="day-content" style="display:none;">
+      <div class="timeline-card">
+        <div class="time-slot">08:30 - 10:30</div>
+        <div class="event-title">National Orchid Garden</div>
+        <div class="event-desc">DT Line to Botanic Gardens. Macro orchid photography (SGD $15 entry, Apple Pay).</div>
+        <span class="tag">Flora & Macro</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">10:30 - 11:15</div>
+        <div class="event-title">Lunch: Adam Road Food Centre</div>
+        <div class="event-desc">Selera Rasa Nasi Lemak right by the MRT entrance (~SGD $6.50, Cash).</div>
+        <span class="tag">Hawker Lunch</span>
+      </div>
+      <div class="timeline-card urgent">
+        <div class="time-slot">11:45 - 12:00</div>
+        <div class="event-title">Strict Hotel Checkout</div>
+        <div class="event-desc">Return to 47 Hongkong St, checkout strictly before 12:00, retrieve both 29" bags.</div>
+        <span class="tag">Deadline</span>
+      </div>
+      <div class="timeline-card">
+        <div class="time-slot">12:30 - 17:00</div>
+        <div class="event-title">Jewel Changi Rain Vortex & SQ898</div>
+        <div class="event-desc">Transfer to Changi. Use Early Bag Drop for SQ898. Photograph Rain Vortex wide-angle from L1–L5, board flight home.</div>
+        <span class="tag">Final Departure</span>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <!-- MAP VIEW -->
+  <main id="map-view" class="view-panel">
+    <div id="map"></div>
+  </main>
+
+  <!-- LOGGER VIEW -->
+  <main id="logger" class="view-panel">
+    <div class="summary-card">
+      <div class="summary-title">Trip Spending Summary</div>
+      <div class="balance-display" id="total-spent-sgd">SGD $0.00</div>
+      <div class="rates-note" id="converted-total">≈ AUD $0.00 | HKD $0.00</div>
+      <div class="rates-note" style="margin-top:8px;">
+        Cash Spent: <span id="cash-spent" style="color:var(--accent-amber);">SGD $0.00</span> / $150.00 Reserve
+      </div>
+    </div>
+
+    <div class="input-card">
+      <div class="form-group">
+        <label>Expense Name</label>
+        <input type="text" id="exp-name" class="form-control" placeholder="e.g., Tian Tian Chicken Rice" />
+      </div>
+      <div class="form-group">
+        <label>Amount in SGD</label>
+        <input type="number" id="exp-amount" class="form-control" placeholder="0.00" step="0.5" />
+      </div>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <div class="radio-row">
+          <label><input type="radio" name="pay-method" value="Cash" checked /> 💵 Cash (Hawker/Kopi)</label>
+          <label><input type="radio" name="pay-method" value="Apple Pay" /> 📱 Apple Pay / Card</label>
+        </div>
+      </div>
+      <button class="btn-submit" onclick="addExpense()">Add Transaction</button>
+    </div>
+
+    <ul class="log-list" id="expense-list"></ul>
+  </main>
 
   <script>
-    const SGD_TO_HKD = 6.14;
-    const SGD_TO_AUD = 1.10;
-    const TOTAL_BUDGET_SGD = 718.70;
+    // Exchange Rates (Fixed base reference: 1 SGD ≈ 1.10 AUD, 1 SGD ≈ 6.14 HKD)
+    const AUD_RATE = 1.10;
+    const HKD_RATE = 6.14;
 
-    // Currency Converter
-    function convertCurrency() {
-      const val = parseFloat(document.getElementById('sgdInput').value) || 0;
-      document.getElementById('hkdOutput').innerText = 'HK$ ' + (val * SGD_TO_HKD).toFixed(2);
-      document.getElementById('audOutput').innerText = 'AUD $' + (val * SGD_TO_AUD).toFixed(2);
-    }
-
-    // Dynamic Map Update
-    function setMap(query, label) {
-      document.getElementById('gmap_canvas').src = `https://maps.google.com/maps?q=${query}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
-      document.getElementById('currentMapLoc').innerText = label;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // Tab Navigation
-    function showTab(id) {
-      document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.segment-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(id).style.display = 'block';
-      event.target.classList.add('active');
-    }
-
-    // Money Logger Storage & Functions
-    function loadExpenses() {
-      const expenses = JSON.parse(localStorage.getItem('sg_stopover_expenses') || '[]');
-      const listEl = document.getElementById('expenseList');
+    // View Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
       
-      if (expenses.length === 0) {
-        listEl.innerHTML = '<li class="log-item" style="color:var(--muted); justify-content:center;">No expenses logged yet.</li>';
-        document.getElementById('totalSpent').innerText = 'SGD $0.00';
-        document.getElementById('totalSpentConverted').innerText = 'HK$ 0.00 | AUD $0.00';
-        document.getElementById('remainingBudget').innerText = 'SGD $' + TOTAL_BUDGET_SGD.toFixed(2);
-        return;
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'map-view') {
+        setTimeout(() => map.invalidateSize(), 200);
       }
+    }
 
+    function showDay(dayNum) {
+      document.querySelectorAll('.day-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === dayNum - 1);
+      });
+      document.querySelectorAll('.day-content').forEach((content, idx) => {
+        content.style.display = (idx === dayNum - 1) ? 'block' : 'none';
+      });
+    }
+
+    // Leaflet Map Initialization
+    const map = L.map('map').setView([1.288, 103.850], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const locations = [
+      { name: "Base: Hotel Bencoolen", coords: [1.2882, 103.8475], desc: "47 Hongkong St - Base HQ" },
+      { name: "Heap Seng Leong", coords: [1.3040, 103.8584], desc: "Kopi Gu You Breakfast (Day 1)" },
+      { name: "Sultan Mosque (Kampong Glam)", coords: [1.3023, 103.8590], desc: "Heritage Street Walk (Day 1)" },
+      { name: "House of Tan Teng Niah (Little India)", coords: [1.3061, 103.8519], desc: "Rainbow Villa Architecture (Day 1)" },
+      { name: "Golden Mile Food Centre", coords: [1.3031, 103.8640], desc: "Claypot & Noodles (Day 1)" },
+      { name: "Spectra & Helix Bridge", coords: [1.2863, 103.8608], desc: "Bayfront Night Photography (Day 1)" },
+      { name: "Lau Pa Sat Satay Street", coords: [1.2806, 103.8504], desc: "Outdoor Charcoal Satay (Day 1)" },
+      { name: "Fort Canning Tree Tunnel", coords: [1.2974, 103.8464], desc: "Beat Queues by 08:30 (Day 2)" },
+      { name: "Old Hill Street Police Station", coords: [1.2907, 103.8488], desc: "927 Rainbow Shutters (Day 2)" },
+      { name: "The Merlion", coords: [1.2868, 103.8545], desc: "Classic Marina Bay Water Spout (Day 2)" },
+      { name: "Amoy Street Food Centre", coords: [1.2794, 103.8467], desc: "CBD Lunch 11:45 (Day 2)" },
+      { name: "CapitaSpring Sky Garden", coords: [1.2842, 103.8508], desc: "L51 Panoramas @ 14:30 (Day 2)" },
+      { name: "Gardens by the Bay Domes", coords: [1.2816, 103.8636], desc: "Cloud Forest & Supertrees (Day 2)" },
+      { name: "Pinnacle@Duxton Skybridge", coords: [1.2764, 103.8415], desc: "50F Skybridge - Closes 21:00 (Day 2)" },
+      { name: "Maxwell Food Centre", coords: [1.2803, 103.8447], desc: "Chicken Rice Lunch (Day 3)" },
+      { name: "Henderson Waves", coords: [1.2761, 103.8155], desc: "Curved Wooden Ribs Walk (Day 3)" },
+      { name: "Fort Siloso Skywalk", coords: [1.2592, 103.8109], desc: "Sentosa Sunset Coastal View (Day 3)" },
+      { name: "National Orchid Garden", coords: [1.3138, 103.8159], desc: "Botanic Gardens Flora (Day 4)" },
+      { name: "Jewel Changi Rain Vortex", coords: [1.3602, 103.9898], desc: "HSBC Indoor Waterfall (Day 4)" }
+    ];
+
+    locations.forEach(loc => {
+      L.marker(loc.coords).addTo(map).bindPopup(`<b>${loc.name}</b><br>${loc.desc}`);
+    });
+
+    // Expenses Logger Logic
+    let expenses = JSON.parse(localStorage.getItem('sg_trip_expenses')) || [
+      { id: 1, name: "Initial Cash Reserve", amount: 0, method: "Cash", time: "Setup" }
+    ];
+
+    function saveExpenses() {
+      localStorage.setItem('sg_trip_expenses', JSON.stringify(expenses));
+      renderExpenses();
+    }
+
+    function addExpense() {
+      const nameInput = document.getElementById('exp-name');
+      const amountInput = document.getElementById('exp-amount');
+      const method = document.querySelector('input[name="pay-method"]:checked').value;
+
+      const name = nameInput.value.trim();
+      const amount = parseFloat(amountInput.value);
+
+      if (!name || isNaN(amount) || amount <= 0) return;
+
+      expenses.unshift({
+        id: Date.now(),
+        name: name,
+        amount: amount,
+        method: method,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      nameInput.value = '';
+      amountInput.value = '';
+      saveExpenses();
+    }
+
+    function deleteExpense(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      saveExpenses();
+    }
+
+    function renderExpenses() {
+      const listEl = document.getElementById('expense-list');
       listEl.innerHTML = '';
-      let total = 0;
 
-      expenses.forEach((item, index) => {
-        total += item.amount;
+      let totalSGD = 0;
+      let cashSpentSGD = 0;
+
+      expenses.forEach(item => {
+        totalSGD += item.amount;
+        if (item.method === "Cash") cashSpentSGD += item.amount;
+
+        const audEquiv = (item.amount * AUD_RATE).toFixed(2);
+        const hkdEquiv = (item.amount * HKD_RATE).toFixed(2);
+
         const li = document.createElement('li');
         li.className = 'log-item';
         li.innerHTML = `
-          <div>
-            <div style="font-weight:600;">${item.desc}</div>
-            <div style="font-size:0.7rem; color:var(--muted);">HK$ ${(item.amount * SGD_TO_HKD).toFixed(2)} • AUD $${(item.amount * SGD_TO_AUD).toFixed(2)}</div>
+          <div class="log-details">
+            <span class="log-desc">${item.name}</span>
+            <span class="log-meta">${item.time} • ${item.method}</span>
           </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-weight:700; color:#38bdf8;">SGD $${item.amount.toFixed(2)}</span>
-            <button class="log-del" onclick="deleteExpense(${index})">×</button>
+          <div style="display:flex; align-items:center;">
+            <div class="log-amount">
+              <div class="log-sgd">SGD $${item.amount.toFixed(2)}</div>
+              <div class="log-converted">≈ AUD $${audEquiv} | HKD $${hkdEquiv}</div>
+            </div>
+            ${item.id !== 1 ? `<button class="btn-del" onclick="deleteExpense(${item.id})">✕</button>` : ''}
           </div>
         `;
         listEl.appendChild(li);
       });
 
-      const remaining = TOTAL_BUDGET_SGD - total;
-      document.getElementById('totalSpent').innerText = 'SGD $' + total.toFixed(2);
-      document.getElementById('totalSpentConverted').innerText = `HK$ ${(total * SGD_TO_HKD).toFixed(2)} | AUD $${(total * SGD_TO_AUD).toFixed(2)}`;
-      document.getElementById('remainingBudget').innerText = 'SGD $' + remaining.toFixed(2);
-
-      const statusEl = document.getElementById('budgetStatus');
-      if (remaining < 0) {
-        statusEl.innerText = 'Over Budget';
-        statusEl.style.color = 'var(--danger)';
-      } else {
-        statusEl.innerText = 'On Track';
-        statusEl.style.color = 'var(--tag-transit)';
-      }
+      document.getElementById('total-spent-sgd').textContent = `SGD $${totalSGD.toFixed(2)}`;
+      document.getElementById('converted-total').textContent = 
+        `≈ AUD $${(totalSGD * AUD_RATE).toFixed(2)} | HKD $${(totalSGD * HKD_RATE).toFixed(2)}`;
+      document.getElementById('cash-spent').textContent = `SGD $${cashSpentSGD.toFixed(2)}`;
     }
 
-    function addExpense() {
-      const descInput = document.getElementById('expenseDesc');
-      const amtInput = document.getElementById('expenseAmt');
-      const desc = descInput.value.trim();
-      const amt = parseFloat(amtInput.value);
-
-      if (!desc || isNaN(amt) || amt <= 0) return;
-
-      const expenses = JSON.parse(localStorage.getItem('sg_stopover_expenses') || '[]');
-      expenses.unshift({ desc, amount: amt, date: new Date().toISOString() });
-      localStorage.setItem('sg_stopover_expenses', JSON.stringify(expenses));
-
-      descInput.value = '';
-      amtInput.value = '';
-      loadExpenses();
-    }
-
-    function deleteExpense(index) {
-      const expenses = JSON.parse(localStorage.getItem('sg_stopover_expenses') || '[]');
-      expenses.splice(index, 1);
-      localStorage.setItem('sg_stopover_expenses', JSON.stringify(expenses));
-      loadExpenses();
-    }
-
-    function clearAllExpenses() {
-      if (confirm('Clear all logged expenses?')) {
-        localStorage.removeItem('sg_stopover_expenses');
-        loadExpenses();
-      }
-    }
-
-    // Init on load
-    window.onload = function() {
-      loadExpenses();
-    };
+    // Initial Render
+    renderExpenses();
   </script>
 </body>
 </html>
